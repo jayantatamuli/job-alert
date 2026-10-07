@@ -1,0 +1,26 @@
+# Save as .github/workflows/job-alert.yml in a GitHub repo that also holds job_alert.py
+# Add a repo secret NTFY_TOPIC (any unique name, e.g. jayanta-jobs-83921)
+name: job-alert
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python job_alert.py
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      - run: |
+          git config user.name "job-alert"
+          git config user.email "job-alert@users.noreply.github.com"
+          git add seen.json
+          git commit -m "update seen jobs" || exit 0
+          git push
